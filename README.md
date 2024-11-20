@@ -1,1 +1,1 @@
-Currently, I am dedicating my time to designing and prototyping a minimal form factor 3-axis robotic arm and controlling it using an Arduino Uno and an Xbox controller.
+Currently, I am dedicating my time to designing and prototyping a minimal form factor 3-axis robotic arm and controlling it using an Arduino Uno and an Xbox controller. These files check for Xbox controller input (i.e. joystick input between -1 and 1) and send corresponding commands to the Arduino which sends corresponding commands to the motor
