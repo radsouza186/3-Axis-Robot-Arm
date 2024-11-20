@@ -1,0 +1,53 @@
+import serial  # For communication with Arduino
+import pygame  # For handling Xbox controller input
+import time    # For adding delays in the loop
+
+# Initialize pygame for controller input
+pygame.init()  # Initialize all imported pygame modules
+pygame.joystick.init()  # Initialize the joystick module
+
+# Initialize the Xbox controller (assuming it's the first joystick connected)
+joystick = pygame.joystick.Joystick(0)  # Access the first connected joystick
+joystick.init()  # Initialize the joystick for use
+
+# Connect to the Arduino via serial communication
+arduino = serial.Serial('COM3', 19200)  # Replace 'COM3' with your specific Arduino port
+
+try:
+    while True:
+        # Process pygame events to capture joystick input
+        pygame.event.pump()  # Update internal pygame event queue
+
+        # Read the vertical axis of the left joystick
+        # Axis 1 corresponds to the vertical motion of the left stick
+        joystick_value = joystick.get_axis(1)
+
+        # Apply a dead zone to ignore small joystick movements around the center position
+        if abs(joystick_value) < 0.1:  # Ignore inputs within the dead zone
+            joystick_value = 0
+
+        # Map joystick value to a delay range (1-50ms) for controlling motor speed
+        # Larger joystick values result in shorter delays (faster motor speed)
+        delay_value = 50 - abs(joystick_value) * 49
+        
+        # Check the joystick direction and send corresponding command to Arduino
+        if joystick_value > 0:  # Forward direction
+            arduino.write(f"F{delay_value}\n".encode())  # Send 'F' for forward
+            print("F " + str(joystick_value) + "    " + str(delay_value))
+        elif joystick_value < 0:  # Reverse direction
+            arduino.write(f"R{delay_value}\n".encode())  # Send 'R' for reverse
+            print("R " + str(joystick_value) + "     " + str(delay_value))
+        else:  # Stop motor when joystick is in the neutral position
+            arduino.write(b"S\n")  # Send 'S' to stop the motor
+            print("S")
+
+        # Delay for a short time to prevent overwhelming the serial connection
+        time.sleep(0.05)
+
+except KeyboardInterrupt:
+    # Graceful exit on keyboard interrupt (Ctrl+C)
+    print("Exiting...")
+finally:
+    # Close the serial connection and quit pygame to release resources
+    arduino.close()
+    pygame.quit()
